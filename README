@@ -1,0 +1,9 @@
+Simple script that scrapes the volume usage page on an
+iiNet customer account and prints out the account stats.
+
+Requires python 2.6+ and the BeautifulSoup module.
+
+Obviously if the page changes, this script will need to as well.
+Only tested on a single home account and comes with no warranty whatsoever.
+
+
