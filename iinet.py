@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
-# A small script that writes usage statistics to an .iinetvolume file in $HOME
-# The file can then be read by a tool such as Conky to display on the desktop
-# Requires python 2.6+
+# Small script that prints iiNet volume usage stats.
+# Requires python 2.6+ with the BeautifulSoup module.
 
 import urllib
 import urllib2
