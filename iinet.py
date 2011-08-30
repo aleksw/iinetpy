@@ -2,13 +2,13 @@
 
 # A small script that writes usage statistics to an .iinetvolume file in $HOME
 # The file can then be read by a tool such as Conky to display on the desktop
+# Requires python 2.6+
 
 import urllib
 import urllib2
 import re
 import math
 import string
-import os
 
 from BeautifulSoup import BeautifulSoup
 from datetime import datetime
@@ -89,13 +89,10 @@ if __name__ == "__main__":
         stats_total = int(stats_total)
         stats.append(UsageStats(period, stats_used, stats_total))
 
-    outfile = open('%s/.iinetvolume' % os.getenv('HOME'), 'w')
-
     for usagestat in stats:
-        outfile.write("%s\n" % str(usagestat))
+        print "%s" % str(usagestat)
 
-    outfile.write("\nReset in: %d days %d hours\n" % (days_to_reset, hours_to_reset))
-    outfile.write("Updated: %s\n" % datetime.now().strftime("%d %B %Y %I:%M %p"))
-    outfile.close()
+    print "Reset in: %d days %d hours" % (days_to_reset, hours_to_reset)
+    print "Updated: %s" % datetime.now().strftime("%d %B %Y %I:%M %p")
 
 
