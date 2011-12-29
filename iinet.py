@@ -10,6 +10,8 @@ import math
 import string
 from BeautifulSoup import BeautifulSoup
 from datetime import datetime
+from datetime import timedelta
+import calendar
 
 VOLUME_URL = "https://toolbox.iinet.net.au/cgi-bin/new/volumeusage.cgi"
 
@@ -61,8 +63,11 @@ if __name__ == "__main__":
     reset_date = datetime.strptime("%d %s %d" % (reset_day, reset_month, reset_year), "%d %B %Y")
 
     time_to_reset = (reset_date - datetime.now())
-    if time_to_reset.seconds <= 0:
-        reset_date.year+=1
+    if time_to_reset.days <= 0:
+        days=365
+        if calendar.isleap(datetime.now().year):
+            days+=1
+        reset_date += timedelta(days=days)
         time_to_reset = (reset_date - datetime.now())
 
     days_to_reset = time_to_reset.days
