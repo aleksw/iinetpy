@@ -8,7 +8,6 @@ import urllib2
 import re
 import math
 import string
-
 from BeautifulSoup import BeautifulSoup
 from datetime import datetime
 
