@@ -1,8 +1,3 @@
 Simple script that scrapes volume usage from the iiNet customer account page.
-
-Requires python 2.6+ and the BeautifulSoup module.
-
-Apparently there is an unofficial XML feed now. Use that.
-
-
+Requires python 2.6+ and the BeautifulSoup module. I use it with Conky.
 
