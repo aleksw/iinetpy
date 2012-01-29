@@ -23,10 +23,10 @@ class UsageStats(object):
         self.period_name = string.capwords(period_name)
         self.usage = usage
         self.total = total
+        self.percentage = 0
+
         if self.total:
             self.percentage = math.ceil(float(self.usage)/self.total * 100)
-        else:
-            self.percentage = 0
 
     def __str__(self):
         if self.percentage:
