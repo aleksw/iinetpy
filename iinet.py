@@ -1,22 +1,21 @@
 #!/usr/bin/env python
 
-# Small script that prints iiNet volume usage stats.
-# Requires python 2.6+ with the BeautifulSoup module.
+# Small script that prints iiNet volume usage stats
+# Tested with python 2.6
 
 import urllib
 import urllib2
-import re
 import math
 import string
-from BeautifulSoup import BeautifulSoup
 from datetime import datetime
 from datetime import timedelta
 import calendar
+from xml.etree import ElementTree
 
-VOLUME_URL = "https://toolbox.iinet.net.au/cgi-bin/new/volumeusage.cgi"
+VOLUME_URL = "https://toolbox.iinet.net.au/cgi-bin/new/volume_usage_xml.cgi"
 
-USERNAME = "username" ##### REPLACE with iiNet USERNAME ######
-PASSWORD = "password" ##### REPLACE with iiNet PASSWORD ######
+USERNAME = "username" ##### replace with iinet username ######
+PASSWORD= "password" ##### replace with iinet password ######
 
 class UsageStats(object):
     def __init__(self, period_name, usage, total):
@@ -48,19 +47,39 @@ if __name__ == "__main__":
         response = urllib2.urlopen(request)
     except Exception:
         print "Error!"
-        exit(1)
 
-    soup = BeautifulSoup(response.read())
+    doc = ElementTree.fromstring(response.read())
 
-    usageTag= soup.findAll('td', id='usage_div')[0]
-    resetdatere = re.compile('.*(?P<day>\d\d+).*(?P<month>(January|February|March|April|June|July|August|September|October|November|December)).*')
-    resetTag = soup.findAll('div', id='quota_reset')[0]
-    resetString = " ".join(str(x) for x in resetTag.contents)
-    reset_day = int(resetdatere.search(resetString).group('day'))
-    reset_month = resetdatere.search(resetString).group('month')
-    reset_year = int(datetime.now().year)
+    tags = doc.findall("volume_usage/expected_traffic_types/type")
 
-    reset_date = datetime.strptime("%d %s %d" % (reset_day, reset_month, reset_year), "%d %B %Y")
+    stats = []
+
+    for usage_info in tags:
+        period = usage_info.attrib["classification"]
+        used = int(usage_info.attrib["used"]) / 1000000 # to MB
+        total = 0
+        allocation_tag = usage_info.find("quota_allocation")
+        if(allocation_tag is not None):
+            total = int(allocation_tag.text)
+        stats.append(UsageStats(period, used, total))
+
+    reset_day = 0
+    reset_day_tag = doc.find("volume_usage/quota_reset/anniversary")
+    if(reset_day_tag is not None):
+        reset_day = int(reset_day_tag.text)
+
+    now = datetime.now()
+    reset_month = now.date().month
+    reset_year = now.date().year
+
+    if(reset_day < now.date().day):
+        if(reset_month + 1 > 12):
+            reset_year += 1
+            reset_month = 1
+        else:
+            reset_month += 1
+
+    reset_date = datetime(reset_year, reset_month, reset_day)
 
     time_to_reset = (reset_date - datetime.now())
     if time_to_reset.days <= 0:
@@ -73,29 +92,10 @@ if __name__ == "__main__":
     days_to_reset = time_to_reset.days
     hours_to_reset = time_to_reset.seconds / 3600
 
-
-    btagsre = re.compile('peak|offpeak|freezone')
-    statsre = re.compile('(?P<used>\d+(\,\d)?\d*)[A-Za-z\s]*(?P<total>\d+(\,\d)?\d*)?')
-    bTags = [ b for b in usageTag.findAll('b') if btagsre.match(b.string) ]
-    stats = []
-
-    for bTag in bTags:
-        period = bTag.string
-        nextDiv = bTag.findNext('div')
-        stats_used = int(statsre.match(nextDiv.string).group('used').replace(',', ''))
-        stats_total = statsre.match(nextDiv.string).group('total')
-        if stats_total:
-            stats_total = stats_total.replace(',', '')
-        else:
-            stats_total = 0
-
-        stats_total = int(stats_total)
-        stats.append(UsageStats(period, stats_used, stats_total))
-
     for usagestat in stats:
         print "%s" % str(usagestat)
 
-    print "Reset in: %d days %d hours" % (days_to_reset, hours_to_reset)
+    print "\nReset in: %d days %d hours" % (days_to_reset, hours_to_reset)
     print "Updated: %s" % datetime.now().strftime("%d %B %Y %I:%M %p")
 
 
